@@ -42,6 +42,12 @@
 %global develsuffix devel
 %endif
 
+%if (0%{?suse_version} && 0%{?suse_version} > 1550)
+%bcond_with tftp_user_package
+%else
+%bcond_without tftp_user_package
+%endif
+
 Name:           python-kiwi
 Version:        %%VERSION
 Provides:       kiwi-schema = 7.1
@@ -188,6 +194,9 @@ Requires:       syslinux
 Requires(pre):  shadow-utils
 %else
 Requires(pre):  shadow
+%endif
+%if %{with tftp_user_package}
+Requires(pre):  user(tftp)
 %endif
 License:        GPL-3.0-or-later
 Group:          %{sysgroup}
@@ -391,7 +400,7 @@ done
 %fdupes %{buildroot}/srv/tftpboot
 %endif
 
-%if %{_vendor} != "debbuild"
+%if %{_vendor} != "debbuild" && %{without tftp_user_package}
 %ifarch %{ix86} x86_64
 %pre -n kiwi-pxeboot
 #============================================================
@@ -447,7 +456,9 @@ fi
 %if %{_vendor} != "debbuild"
 %ifarch %{ix86} x86_64
 %files -n kiwi-pxeboot
+%if %{without tftp_user_package}
 %dir %attr(0755,tftp,tftp) /srv/tftpboot
+%endif
 %dir /srv/tftpboot/KIWI
 %dir /srv/tftpboot/pxelinux.cfg
 %dir /srv/tftpboot/image
